@@ -2,25 +2,22 @@ name: Bump Plugin SHAs
 
 # Nightly sweep: for each external entry whose upstream HEAD has moved past
 # its pinned SHA, validate at the new SHA with `claude plugin validate`
-# inline, then open one PR with all passing bumps. Each run force-resets the
-# bump/plugin-shas branch, so a previous night's unmerged PR is replaced (and
-# its review state discarded) — review and merge same-day to avoid churn.
+# inline, then open one PR per bumped plugin on branch `bump/<slug>`.
+# Failing entries stay isolated in their own PR; passing bumps merge
+# independently.
 #
 # Bot-free — uses the default GITHUB_TOKEN. PRs opened with GITHUB_TOKEN don't
 # trigger on:pull_request workflows, so the policy scan (`Scan Plugins`, a
 # required status check on main) would never run and the bump PR could never
 # merge. workflow_dispatch is exempt from that recursion guard, so we dispatch
-# the scan ourselves on the bump branch after the PR is opened. The check run
-# lands on the branch HEAD — the same SHA as the PR head — and satisfies the
-# required check.
+# the scan ourselves against each per-entry bump branch after its PR is
+# opened. The check run lands on the branch HEAD — the same SHA as the PR
+# head — and satisfies the required check.
 #
-# max-bumps is set above the external-entry count so a single run can clear
-# any backlog. The cost-control mechanisms are downstream:
-#   - scan-plugins.yml caches verdicts by (plugin, sha) so an unchanged SHA
-#     is never re-scanned across nightly force-resets.
-#   - revert-failed-bumps.yml drops policy-failing entries from the bump PR
-#     so one bad upstream can't block the rest.
-# See those files for details.
+# max-bumps caps the per-night work for cost control. Per-entry scans are
+# more expensive than a single batched scan, so the cap is conservative.
+# The composite action skips entries that already have an open bump PR, so
+# re-dispatches don't pile up duplicate work.
 
 on:
   schedule:
@@ -30,12 +27,12 @@ on:
       max_bumps:
         description: Cap on plugins bumped this run
         required: false
-        default: '130'
+        default: '30'
 
 permissions:
   contents: write
   pull-requests: write
-  actions: write  # gh workflow run scan-plugins.yml on the bump branch
+  actions: write  # gh workflow run scan-plugins.yml per per-entry bump branch
 
 concurrency:
   group: bump-plugin-shas
@@ -43,27 +40,39 @@ concurrency:
 jobs:
   bump:
     runs-on: ubuntu-latest
-    # Per-bump cost is ~2s (ls-remote + shallow clone + validate); 130 entries
-    # is ~5 min. The 60 min ceiling absorbs slow upstreams without letting a
+    # Per-bump cost is ~2s (ls-remote + shallow clone + validate); 30 entries
+    # is ~1-2 min. The 60 min ceiling absorbs slow upstreams without letting a
     # pathological run consume the default 360 min budget.
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
       # createCommitOnBranch-based bump so commits are signed by GitHub and
-      # satisfy the org-level required_signatures ruleset on main.
-      - uses: anthropics/claude-plugins-community/.github/actions/bump-plugin-shas@c41c6911de0afffd2bc5cd8b21fb1e06444ee13b
+      # satisfy the org-level required_signatures ruleset on main. The pin
+      # below tracks a feature branch of the bump-plugin-shas action that
+      # adds the `pr-mode: per-entry` input — re-pin to the merge SHA after
+      # that change lands on the action's main.
+      - uses: anthropics/claude-plugins-community/.github/actions/bump-plugin-shas@18397a37723195b6586a37567b9ca554e99e22db
         id: bump
         with:
           marketplace-path: .claude-plugin/marketplace.json
-          max-bumps: ${{ inputs.max_bumps || '130' }}
+          max-bumps: ${{ inputs.max_bumps || '30' }}
+          pr-mode: per-entry
           claude-cli-version: latest
 
-      # `bump/plugin-shas` is the action's default `pr-branch`. The scan diffs
-      # the branch against origin/main (the action's base-ref fallback when
-      # there's no pull_request event) and scans only the bumped entries.
-      - name: Dispatch policy scan on bump branch
-        if: steps.bump.outputs.pr-url != ''
+      # Per-entry fan-out: dispatch the policy scan against each bump branch.
+      # `pr-urls` is a JSON array of {name, old_sha, new_sha, branch, pr_url}
+      # entries emitted by the composite action when pr-mode is per-entry.
+      - name: Dispatch policy scan per per-entry PR
+        if: steps.bump.outputs.pr-urls != '' && steps.bump.outputs.pr-urls != '[]'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run scan-plugins.yml --ref bump/plugin-shas
+          PR_URLS: ${{ steps.bump.outputs.pr-urls }}
+        run: |
+          set -euo pipefail
+          jq -c '.[]' <<<"$PR_URLS" | while read -r entry; do
+            branch=$(jq -r '.branch' <<<"$entry")
+            name=$(jq -r '.name' <<<"$entry")
+            echo "Dispatching scan-plugins.yml against $branch ($name)"
+            gh workflow run scan-plugins.yml --ref "$branch"
+          done

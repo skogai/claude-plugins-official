@@ -1,11 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "claude-plugins-official",
+  "name": "claude-plugins",
   "description": "Directory of popular Claude Code extensions including development tools, productivity plugins, and MCP integrations",
-  "owner": {
-    "name": "Anthropic",
-    "email": "support@anthropic.com"
-  },
   "plugins": [
     {
       "name": "42crunch-api-security-testing",
@@ -245,9 +241,7 @@
         "sha": "324399402b9b5965313de6a34ea09d6bb149a200"
       },
       "homepage": "https://github.com/BrainBlend-AI/atomic-agents",
-      "tags": [
-        "community-managed"
-      ]
+      "tags": ["community-managed"]
     },
     {
       "name": "auth0",
@@ -578,9 +572,7 @@
       "lspServers": {
         "clangd": {
           "command": "clangd",
-          "args": [
-            "--background-index"
-          ],
+          "args": ["--background-index"],
           "extensionToLanguage": {
             ".c": "c",
             ".h": "c",
@@ -769,9 +761,7 @@
       "category": "development",
       "source": "./external_plugins/context7",
       "homepage": "https://github.com/anthropics/claude-plugins-public/tree/main/external_plugins/context7",
-      "tags": [
-        "community-managed"
-      ]
+      "tags": ["community-managed"]
     },
     {
       "name": "convex",
@@ -1349,9 +1339,7 @@
       "lspServers": {
         "kotlin-lsp": {
           "command": "kotlin-lsp",
-          "args": [
-            "--stdio"
-          ],
+          "args": ["--stdio"],
           "extensionToLanguage": {
             ".kt": "kotlin",
             ".kts": "kotlin"
@@ -1788,9 +1776,7 @@
       "lspServers": {
         "intelephense": {
           "command": "intelephense",
-          "args": [
-            "--stdio"
-          ],
+          "args": ["--stdio"],
           "extensionToLanguage": {
             ".php": "php"
           }
@@ -1942,9 +1928,7 @@
       "lspServers": {
         "pyright": {
           "command": "pyright-langserver",
-          "args": [
-            "--stdio"
-          ],
+          "args": ["--stdio"],
           "extensionToLanguage": {
             ".py": "python",
             ".pyi": "python"
@@ -2315,9 +2299,7 @@
       "category": "development",
       "source": "./external_plugins/serena",
       "homepage": "https://github.com/anthropics/claude-plugins-public/tree/main/external_plugins/serena",
-      "tags": [
-        "community-managed"
-      ]
+      "tags": ["community-managed"]
     },
     {
       "name": "servicenow-sdk",
@@ -2599,9 +2581,7 @@
       "lspServers": {
         "typescript": {
           "command": "typescript-language-server",
-          "args": [
-            "--stdio"
-          ],
+          "args": ["--stdio"],
           "extensionToLanguage": {
             ".ts": "typescript",
             ".tsx": "typescriptreact",

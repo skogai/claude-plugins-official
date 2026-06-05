@@ -1447,6 +1447,20 @@
       "homepage": "https://github.com/pydantic/skills/tree/main/plugins/logfire"
     },
     {
+      "name": "looker",
+      "description": "Connect to Looker and interact with your data using LookML.",
+      "author": {
+        "name": "Google LLC"
+      },
+      "category": "database",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/gemini-cli-extensions/looker.git",
+        "sha": "ca53ea9d8a6950ef75902f95a9c3f951e333482b"
+      },
+      "homepage": "https://github.com/gemini-cli-extensions/looker"
+    },
+    {
       "name": "lua-lsp",
       "description": "Lua language server for code intelligence",
       "version": "1.0.0",

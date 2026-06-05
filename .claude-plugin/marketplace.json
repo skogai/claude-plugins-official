@@ -2,6 +2,10 @@
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "claude-plugins",
   "description": "Directory of popular Claude Code extensions including development tools, productivity plugins, and MCP integrations",
+  "owner": {
+    "name": "skogix",
+    "email": "skogix@skogai.se"
+  },
   "plugins": [
     {
       "name": "42crunch-api-security-testing",

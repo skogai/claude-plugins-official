@@ -98,6 +98,13 @@ After outputting the quality report, ask user for confirmation before updating.
 
 **Update Guidelines (Critical):**
 
+0. **Never remove project-specific syntax** — these are intentional and must be preserved as-is:
+   - `` @`path` `` and `` !`command` `` inline references — active links, not decoration
+   - `[@TODO:"..."]` and `[@TODO:skogix:"..."]` annotations — intentional stubs, not dead code
+   - XML structural tags (`<routes>`, `<filetree>`, `<when_to_use>`, `<workflow>`, etc.)
+   - `<routes>` blocks hold `` @`path` `` links that exist purely for routing — preserve and use this pattern when a file only routes to others
+   - `<filetree>` blocks hold `` @`path/` `` links representing a directory listing — preserve and use this pattern to show folder contents
+
 1. **Propose targeted additions only** - Focus on genuinely useful info:
    - Commands or workflows discovered during analysis
    - Gotchas or non-obvious patterns found in code
